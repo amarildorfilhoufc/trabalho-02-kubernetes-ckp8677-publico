@@ -1,7 +1,7 @@
 # Trabalho 02 — FastAPI, Docker e Kubernetes
 
 **Disciplina:** CKP8677 — Desenvolvimento de Software para Nuvem  
-**Autor:** Amarildo Filho
+**Autor:** Amarildo Filho e Rafael Costa
 
 ## Resumo do Projeto
 
@@ -365,5 +365,5 @@ Todos os requisitos do trabalho foram atendidos.
 
 ## Créditos
 
-Desenvolvido por Amarildo Filho  
+Desenvolvido por Amarildo Filho e Rafael Costa
 Testado no Docker Desktop Kubernetes
