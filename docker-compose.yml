@@ -1,0 +1,84 @@
+services:
+  # -------------------------------
+  # BACKEND FASTAPI (app.py)
+  # -------------------------------
+  app:
+    container_name: fastapi_app_kubernetes
+    build: .
+    ports:
+      - "8001:8000"  # host 8001 -> container 8000 (evita conflito com outro 8000)
+    environment:
+
+      # ==== POSTGRES LOCAL ====
+      DB_USER: "admin_periodicos"
+      DB_PASSWORD: "periodicos123"
+      DB_HOST: "postgres"
+      DB_PORT: "5432"
+      DB_NAME: "periodicos"
+
+      # ==== AWS – DynamoDB ====
+      AWS_REGION: "us-east-1"
+      DDB_TABLE: "Logs"
+      AWS_ACCESS_KEY_ID: "REPLACE_AWS_ACCESS_KEY_ID"
+      AWS_SECRET_ACCESS_KEY: "REPLACE_AWS_SECRET_ACCESS_KEY"
+
+      # ==== MINIO (substituto do S3) ====
+      S3_ENDPOINT: "http://minio:9000"
+      S3_ACCESS_KEY: "MINIO_PLACEHOLDER"
+      S3_SECRET_KEY: "MINIO_PLACEHOLDER"
+      S3_BUCKET: "bucket-periodicos"
+
+    depends_on:
+      - postgres
+      - minio
+    networks:
+      - app-network
+
+  # -------------------------------
+  # POSTGRES LOCAL
+  # -------------------------------
+  postgres:
+    image: postgres:14
+    container_name: postgres_kubernetes
+    restart: always
+    environment:
+      POSTGRES_USER: admin_periodicos
+      POSTGRES_PASSWORD: periodicos123
+      POSTGRES_DB: periodicos
+    ports:
+      - "5433:5432"  # host 5433 -> container 5432 (não briga com o outro Postgres)
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  # -------------------------------
+  # MINIO
+  # -------------------------------
+  minio:
+    image: minio/minio
+    container_name: minio_kubernetes
+    ports:
+      - "9100:9000"  # host 9100 -> container 9000 (API)
+      - "9101:9001"  # host 9101 -> container 9001 (console)
+    environment:
+      MINIO_ROOT_USER: MINIO_PLACEHOLDER
+      MINIO_ROOT_PASSWORD: MINIO_PLACEHOLDER
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - app-network
+
+
+# -------------------------------
+# NETWORKS & VOLUMES
+# -------------------------------
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  minio_data:
+  postgres_data:
+

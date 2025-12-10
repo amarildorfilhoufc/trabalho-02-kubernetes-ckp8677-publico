@@ -1,0 +1,15 @@
+wsl --shutdown
+
+
+---
+
+
+docker compose build
+docker compose up -d
+
+
+---
+
+wsl -l -v
+
+---

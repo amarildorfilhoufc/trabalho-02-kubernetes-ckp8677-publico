@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Sistema de Revistas e Artigos</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="bg-light p-4">
+<div class="container">
+    <h2 class="mb-4 text-center text-primary">📚 Sistema de Revistas e Artigos</h2>
+
+    <!-- ====================== REVISTAS ====================== -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">Revistas</div>
+        <div class="card-body">
+            <form action="/adicionar_revista" method="post" class="d-flex mb-3">
+                <input type="text" name="nome" class="form-control me-2" placeholder="Nome da Revista" required>
+                <button class="btn btn-success">Adicionar Revista</button>
+            </form>
+
+            {% if revistas %}
+                <ul class="list-group">
+                    {% for revista in revistas %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <strong>{{ revista.nome }}</strong>
+                            <div>
+                                <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editarRevista{{ revista.id }}">Editar</button>
+                                <a href="/excluir_revista/{{ revista.id }}" class="btn btn-danger btn-sm">Excluir</a>
+                            </div>
+                        </li>
+
+                        <!-- Modal Editar Revista -->
+                        <div class="modal fade" id="editarRevista{{ revista.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <form action="/editar_revista/{{ revista.id }}" method="post">
+                                        <div class="modal-header bg-primary text-white">
+                                            <h5 class="modal-title">Editar Revista</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <input type="text" name="nome" class="form-control" value="{{ revista.nome }}" required>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                            <button class="btn btn-success">Salvar</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-muted">Nenhuma revista cadastrada.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ====================== ARTIGOS ====================== -->
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">Artigos</div>
+        <div class="card-body">
+            <form action="/adicionar_artigo" method="post" enctype="multipart/form-data" class="mb-4">
+                <div class="row mb-3">
+                    <div class="col-md-6"><input type="text" name="titulo" class="form-control" placeholder="Título" required></div>
+                    <div class="col-md-6"><input type="text" name="autor" class="form-control" placeholder="Autor" required></div>
+                </div>
+                <textarea name="resumo" class="form-control mb-3" placeholder="Resumo do artigo"></textarea>
+                <select name="revista_id" class="form-select mb-3" required>
+                    <option value="">Selecione a Revista</option>
+                    {% for revista in revistas %}
+                        <option value="{{ revista.id }}">{{ revista.nome }}</option>
+                    {% endfor %}
+                </select>
+                <input type="file" name="arquivo" class="form-control mb-3">
+                <button class="btn btn-primary">Adicionar Artigo</button>
+            </form>
+
+            {% if artigos %}
+                <ul class="list-group">
+                    {% for artigo in artigos %}
+                        <li class="list-group-item">
+                            <strong>{{ artigo.titulo }}</strong> — {{ artigo.autor }}<br>
+                            <em>{{ artigo.resumo }}</em><br>
+                            <small class="text-muted">Revista: {{ artigo.revista.nome }}</small>
+                            <div class="mt-2">
+                                <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editarArtigo{{ artigo.id }}">Editar</button>
+                                <a href="/excluir_artigo/{{ artigo.id }}" class="btn btn-danger btn-sm">Excluir</a>
+                            </div>
+                        </li>
+
+                        <!-- Modal Editar Artigo -->
+                        <div class="modal fade" id="editarArtigo{{ artigo.id }}" tabindex="-1">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <form action="/editar_artigo/{{ artigo.id }}" method="post">
+                                        <div class="modal-header bg-success text-white">
+                                            <h5 class="modal-title">Editar Artigo</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <input type="text" name="titulo" value="{{ artigo.titulo }}" class="form-control mb-3" required>
+                                            <input type="text" name="autor" value="{{ artigo.autor }}" class="form-control mb-3" required>
+                                            <textarea name="resumo" class="form-control" rows="4">{{ artigo.resumo }}</textarea>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                            <button class="btn btn-success">Salvar</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-muted">Nenhum artigo cadastrado.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ====================== LOGS (DynamoDB) ====================== -->
+	<div class="card mt-4">
+	    <div class="card-header bg-dark text-white">📊 Últimas Ações (DynamoDB)</div>
+	    <div class="card-body bg-light">
+	        {% if logs %}
+	            <ul class="list-group">
+	                {% for log in logs %}
+	                    <li class="list-group-item">
+	                        <strong>{{ log.acao | upper }}</strong>
+	                        {% if log.detalhes and log.detalhes != "—" %}
+	                            — {{ log.detalhes }}
+	                        {% endif %}
+	                        <span class="text-muted float-end">
+	                            {{ log.hora }}
+	                        </span>
+	                    </li>
+	                {% endfor %}
+	            </ul>
+	        {% else %}
+	            <p class="text-muted">Nenhum log encontrado.</p>
+	        {% endif %}
+	    </div>
+       </div>
+ </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

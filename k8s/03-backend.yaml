@@ -1,0 +1,107 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: revistas-backend
+  namespace: trabalho02
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: revistas-backend
+  template:
+    metadata:
+      labels:
+        app: revistas-backend
+    spec:
+      containers:
+        - name: revistas-backend
+          image: trabalho02-kubernetes-app:latest   # 👈 exatamente como aparece no docker images
+          imagePullPolicy: Never                   # 👈 usa imagem local, não tenta baixar
+          ports:
+            - containerPort: 8000
+          env:
+            # POSTGRES
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: DB_HOST
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: DB_PORT
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: DB_NAME
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: DB_PASSWORD
+
+            # MINIO
+            - name: S3_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: S3_ENDPOINT
+            - name: S3_BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: S3_BUCKET
+            - name: S3_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: S3_ACCESS_KEY
+            - name: S3_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: S3_SECRET_KEY
+
+            # DYNAMODB
+            - name: AWS_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: AWS_REGION
+            - name: DDB_TABLE
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: DDB_TABLE
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: AWS_SECRET_ACCESS_KEY
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: revistas-backend
+  namespace: trabalho02
+spec:
+  type: NodePort
+  selector:
+    app: revistas-backend
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
+      nodePort: 30080
